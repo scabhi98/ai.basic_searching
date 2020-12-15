@@ -1,5 +1,6 @@
 import ai.BreadthFirstSearch;
 import ai.DepthFirstSearch;
+import ai.EightPuzzleBoard;
 import ai.TreeSearch;
 import models.*;
 
@@ -74,5 +75,11 @@ public class DriverProgram {
             System.out.print("\nNo Match Found!");
         }
 
+        EightPuzzleBoard board = new EightPuzzleBoard(EightPuzzleBoard.BLANK_AT_END);
+
+        board.setBoard(1,2,4,3,5,6,7,8,0);
+
+        System.out.println("\nNumber of Misplaced Tiles: "+ EightPuzzleBoard.countMisplacedTiles(board));
+        System.out.println("\nTotal Manhattan Distance: "+ EightPuzzleBoard.getTotalManhattanDistance(board));
     }
 }
