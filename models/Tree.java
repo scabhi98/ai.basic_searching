@@ -15,7 +15,7 @@ public abstract class Tree<T, V> extends Graph<T, V> {
     }
 
     @Override
-    public ConnectableNode<T, V> newVertex(T data) {
+    public TreeNode<T, V> newVertex(T data) {
         return new TreeNode<>(data);
     }
 

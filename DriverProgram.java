@@ -1,4 +1,5 @@
 import ai.BreadthFirstSearch;
+import ai.DepthFirstSearch;
 import ai.TreeSearch;
 import models.*;
 
@@ -24,20 +25,44 @@ public class DriverProgram {
                 b = graph.newVertex("B"),
                 c = graph.newVertex("C"),
                 d = graph.newVertex("D"),
-                e = graph.newVertex("E");
+                e = graph.newVertex("E"),
+                f = graph.newVertex("F"),
+                z = graph.newVertex("Z");
 
         graph.addVertex(a)
                 .addVertex(b)
                 .addVertex(c)
                 .addVertex(d)
-                .addVertex(e);
+                .addVertex(e)
+                .addVertex(f)
+                .addVertex(z);
 
-        graph.connect(a,b).connect(b,c).connect(b,d).connect(c,d).connect(d,e);
+        graph   .connect(a,b,4)
+                .connect(a,c,3)
+                .connect(b,f,5)
+                .connect(b,e,12)
+                .connect(b,a,4)
+                .connect(c,a,3)
+                .connect(c,e,10)
+                .connect(c,d,7)
+                .connect(d,c,7)
+                .connect(d,e,2)
+                .connect(e,d,2)
+                .connect(e,c,10)
+                .connect(e,b,12)
+                .connect(e,z,5)
+                .connect(f,b,5)
+                .connect(f,z,16)
+                .connect(z,e,5)
+                .connect(z,f,16);
 
         BreadthFirstSearch bfs = new BreadthFirstSearch();
+        DepthFirstSearch dfs = new DepthFirstSearch();
         bfs.initialize(graph);
+        dfs.initialize(graph);
 
-        TreeSearch.Result result = bfs.search(a,new ConnectableNode<>("E"));
+//        TreeSearch.Result result = dfs.search(a,new ConnectableNode<>("Z"));
+        TreeSearch.Result result = bfs.search(a,new ConnectableNode<>("Z"));
 
         if(result.isSuccess()){
             System.out.print("\nMatch Found!\nPath Tracing: Start");
@@ -45,6 +70,8 @@ public class DriverProgram {
             for(int i=result.getPath().getTraces().size() -1 ; i>=0; i--){
                 System.out.print(" --> "+((Node<String>)nodes.get(i)).getValue());
             }
+        }else{
+            System.out.print("\nNo Match Found!");
         }
 
     }

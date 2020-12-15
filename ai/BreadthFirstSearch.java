@@ -1,6 +1,8 @@
 package ai;
 
 import models.ConnectableNode;
+import models.TreeNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -24,11 +26,25 @@ public class BreadthFirstSearch extends TreeSearch {
     }
 
     @Override
-    protected ConnectableNode[] expand(ConnectableNode node) {
+    boolean isExpandable(ConnectableNode<ConnectableNode, Object> source, ConnectableNode child) {
+        boolean isExpandable = !child.getValue().equals(searchTree.getRoot().getValue().getValue()); // Source node should not be visited again
+        if(isExpandable && source.getValue() == searchTree.getRoot().getValue()){
+            isExpandable = (searchTree.getVertices().size() < 2); // Dont expand source node again
+        }else if(isExpandable){
+            isExpandable = !((TreeNode<ConnectableNode, Object>) source).getParent().getValue().getValue().equals(
+                    child.getValue()  //Parent Node
+            );
+        }
+        return isExpandable;
+    }
+
+    @Override
+    protected ConnectableNode[] expand(@NotNull ConnectableNode node) {
         ConnectableNode[] expandedNodes = super.expand(node);
 
         for (ConnectableNode n: expandedNodes){
-            nodes.addLast(n);
+            if(n != null)
+                nodes.addLast(n);
         }
         return expandedNodes;
     }

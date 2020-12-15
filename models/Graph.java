@@ -2,10 +2,7 @@ package models;
 
 import java.nio.channels.AlreadyConnectedException;
 import java.nio.channels.NotYetConnectedException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Graph<T, V> {
     Set<ConnectableNode<T, V> > vertices;
@@ -22,20 +19,9 @@ public abstract class Graph<T, V> {
     public abstract int maxAllowedInDegree();
     public abstract int maxAllowedOutDegree();
 
-    public static ConnectableNode[] getChildren(ConnectableNode node){
-        Map connections = node.getConnections();
-        if(connections.size() > 0) {
-            ConnectableNode res[] = new ConnectableNode[connections.size()];
-            Iterator<ConnectableNode> itr = connections.keySet().iterator();
-            short i = -1;
-            while (itr.hasNext()) {
-                ConnectableNode nod = itr.next();
-                res[++i] = nod;
-            }
-            return res;
-        }
-        else
-            return new ConnectableNode[0];
+    public static List<ConnectableNode> getChildren(ConnectableNode node){
+        Map<ConnectableNode, Object> connections = node.getConnections();
+        return new ArrayList<>(connections.keySet());
     }
     public Graph<T,V> addVertex(ConnectableNode<T, V> vertex){
         vertices.add(vertex);

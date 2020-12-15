@@ -7,9 +7,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public abstract class TreeSearch {
-    private Graph graph;
-    private Tree<ConnectableNode, Object> searchTree;
-    private ConnectableNode source;
+    protected Graph graph;
+    protected Tree<ConnectableNode, Object> searchTree;
+    protected ConnectableNode source;
 
     public static class Path{
         List<GraphElement> traces;
@@ -47,19 +47,25 @@ public abstract class TreeSearch {
 
     @Nullable
     abstract ConnectableNode strategy(ConnectableNode node);
-    protected ConnectableNode[] expand(ConnectableNode<ConnectableNode, Object> node){
-        ConnectableNode[] expandedNodes;
-        if(node == null){
-            node = searchTree.getRoot();
-        }
+    abstract boolean isExpandable(ConnectableNode<ConnectableNode, Object> source, ConnectableNode child);
+    protected ConnectableNode[] expand(@NotNull ConnectableNode<ConnectableNode, Object> node){
+        List<ConnectableNode> expandedNodes;
         expandedNodes = Graph.getChildren(node.getValue());
+        try{
+            for(int i=0; i<expandedNodes.size(); i++){
+                if(isExpandable(node, expandedNodes.get(i))) {
+                    TreeNode<ConnectableNode, Object> treeNode = searchTree.newVertex(expandedNodes.get(i));
+                    searchTree.addChildTo(node, treeNode, null);
+                    expandedNodes.set(i, treeNode);
+                }
+                else
+                    expandedNodes.remove(i--);
+            }
 
-        for(int i=0; i<expandedNodes.length; i++){
-            expandedNodes[i] = searchTree.newVertex(expandedNodes[i]);
-            searchTree.addChildTo(node,(TreeNode<ConnectableNode,Object>)expandedNodes[i], null);
+        }catch(IllegalArgumentException e){
+            //Ignore
         }
-        return expandedNodes;
-
+        return expandedNodes.toArray(new ConnectableNode[0]);
     }
     public void initialize(Graph graph){
         this.graph = graph;
@@ -74,14 +80,16 @@ public abstract class TreeSearch {
             }
         };
         ArrayDeque<ConnectableNode> nodeList = new ArrayDeque<>(graph.getVertices());
-        ConnectableNode<ConnectableNode,Object> currentNode = null, workingNode;
+        ConnectableNode<ConnectableNode,Object> currentNode = null;
         while(!nodeList.isEmpty()){
             if(currentNode == null ){
                 currentNode = searchTree.getRoot();
                 expand(currentNode);
             }
             ConnectableNode<ConnectableNode, Object> nextNode = strategy(currentNode);
-            if(destination.getValue().equals(nextNode.getValue().getValue())){
+            if(nextNode == null && nodeList.isEmpty())
+                break;
+            if(nextNode !=null && destination.getValue().equals(nextNode.getValue().getValue())){
                 Path path = new Path();
                 Node<ConnectableNode> traceNode = nextNode;
                 do{
@@ -98,6 +106,8 @@ public abstract class TreeSearch {
                     nodeList.remove(currentNode.getValue());
                 }
                 currentNode = nextNode == null ? searchTree.newVertex(nodeList.removeFirst()) : nextNode;
+                if(currentNode == null)
+                    break;
                 expand(currentNode);
             }
         }
