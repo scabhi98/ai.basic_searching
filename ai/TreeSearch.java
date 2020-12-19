@@ -1,6 +1,7 @@
 package ai;
 
 import models.*;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,24 +11,6 @@ public abstract class TreeSearch {
     protected Graph graph;
     protected Tree<ConnectableNode, Object> searchTree;
     protected ConnectableNode source;
-
-    public static class Path{
-        List<GraphElement> traces;
-        public Path(){
-            traces = new ArrayList<>();
-        }
-        public boolean addTrace(GraphElement element){
-            return traces.add(element);
-        }
-
-        public List<GraphElement> getTraces() {
-            return traces;
-        }
-
-        public void clear(){
-            traces.clear();
-        }
-    }
 
     public static class Result{
         boolean success;
@@ -44,22 +27,51 @@ public abstract class TreeSearch {
             return path;
         }
     }
+    public static class Path{
+        List<GraphElement> traces;
+
+        private int cost;
+
+        public int getCost() {
+            return cost;
+        }
+
+        public void setCost(int cost) {
+            this.cost = cost;
+        }
+        public Path(){
+            traces = new ArrayList<>();
+        }
+
+        public boolean addTrace(GraphElement element){
+            return traces.add(element);
+        }
+
+        public List<GraphElement> getTraces() {
+            return traces;
+        }
+        public void clear(){
+            traces.clear();
+        }
+
+    }
 
     @Nullable
     abstract ConnectableNode strategy(ConnectableNode node);
     abstract boolean isExpandable(ConnectableNode<ConnectableNode, Object> source, ConnectableNode child);
+    @MustBeInvokedByOverriders
     protected ConnectableNode[] expand(@NotNull ConnectableNode<ConnectableNode, Object> node){
-        List<ConnectableNode> expandedNodes;
-        expandedNodes = Graph.getChildren(node.getValue());
+        Set<Connectable> connectedNodes = node.getValue().getConnections().keySet();
+        Iterator<Connectable> itr = connectedNodes.iterator();
+        List<ConnectableNode> expandedNodes = new ArrayList<>(connectedNodes.size());
         try{
-            for(int i=0; i<expandedNodes.size(); i++){
-                if(isExpandable(node, expandedNodes.get(i))) {
-                    TreeNode<ConnectableNode, Object> treeNode = searchTree.newVertex(expandedNodes.get(i));
-                    searchTree.addChildTo(node, treeNode, null);
-                    expandedNodes.set(i, treeNode);
+            while(itr.hasNext()){
+                ConnectableNode connectedNode =  (ConnectableNode) itr.next();
+                if(isExpandable(node,connectedNode)) {
+                    TreeNode<ConnectableNode, Object> treeNode = searchTree.newVertex(connectedNode);
+                    searchTree.addChildTo(node, treeNode, node.getValue().getDataEdge(connectedNode).getData());
+                    expandedNodes.add(treeNode);
                 }
-                else
-                    expandedNodes.remove(i--);
             }
 
         }catch(IllegalArgumentException e){
@@ -71,7 +83,7 @@ public abstract class TreeSearch {
         this.graph = graph;
     }
 
-    public Result search(ConnectableNode source, @NotNull ConnectableNode destination){
+    public Result search(ConnectableNode source, GoalValidator goalValidator){
         this.source = source;
         this.searchTree = new Tree<>(new ConnectableNode<>(source)){
             @Override
@@ -89,8 +101,9 @@ public abstract class TreeSearch {
             ConnectableNode<ConnectableNode, Object> nextNode = strategy(currentNode);
             if(nextNode == null && nodeList.isEmpty())
                 break;
-            if(nextNode !=null && destination.getValue().equals(nextNode.getValue().getValue())){
+            if(nextNode !=null && goalValidator.isValidGoal(nextNode.getValue())){
                 Path path = new Path();
+                path.setCost(((TreeNode ) nextNode).getPathCost());
                 Node<ConnectableNode> traceNode = nextNode;
                 do{
                     path.addTrace(traceNode.getValue());

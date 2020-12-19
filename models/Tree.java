@@ -23,6 +23,20 @@ public abstract class Tree<T, V> extends Graph<T, V> {
         addVertex(child);
         this.connect(parent, child, data);
         child.setParent(parent);
+        int depth, pathCost, weight = 0;
+        if(data instanceof Weightable)
+            weight = ((Weightable) data).weight();
+        pathCost = weight;
+        if(parent == root){
+            depth = 1;
+        }else{
+            depth = ((TreeNode) parent).getDepth() + 1;
+            pathCost += ((TreeNode) parent).getPathCost();
+            child.getAncestors().addAll(((TreeNode) parent).getAncestors());
+        }
+        child.getAncestors().add(parent.getValue());
+        child.setDepth(depth);
+        child.setPathCost(pathCost);
     }
 
     public ConnectableNode<T, V> getRoot() {

@@ -47,9 +47,9 @@ public class ConnectableNode<T, V> implements Connectable<V>, Node<T> {
         return node;
     }
 
-    public DataEdge<V> getDataEdge(ConnectableNode source, ConnectableNode dest){
-        if(source.isConnectedTo(dest)){
-            new DataEdge(source.connections.get(dest));
+    public DataEdge<V> getDataEdge( ConnectableNode dest){
+        if(isConnectedTo(dest)){
+            return new DataEdge(connections.get(dest));
         }
         return null;
     }
